@@ -29,7 +29,6 @@ import com.intellij.ide.projectView.ProjectViewNodeDecorator
 import com.intellij.ide.projectView.impl.ProjectRootsUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
@@ -37,7 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.packageDependencies.ui.PackageDependenciesNode
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.util.PlatformIcons
-import com.mallowigi.config.AtomFileIconsConfig.Companion.instance
+import com.mallowigi.config.AtomFileIconsConfig
 import com.mallowigi.icons.special.CustomDirIcon
 import com.mallowigi.icons.special.DirIcon
 import icons.MTIcons
@@ -45,15 +44,13 @@ import java.util.*
 import javax.swing.Icon
 
 class HollowFoldersDecorator : ProjectViewNodeDecorator {
-  private val useHollowFolders: Boolean
-  private var manager: FileEditorManagerEx? = null
 
   override fun decorate(node: ProjectViewNode<*>, data: PresentationData) {
     val file = node.virtualFile
     val project = node.project
 
     if (project != null && file != null && !Disposer.isDisposed(project)) {
-      if (!useHollowFolders || !file.isDirectory) return
+      if (!AtomFileIconsConfig.instance.isUseHollowFolders || !file.isDirectory) return
 
       if (isFolderContainingOpenFiles(project, file)) setOpenDirectoryIcon(data, file, project)
     }
@@ -63,32 +60,24 @@ class HollowFoldersDecorator : ProjectViewNodeDecorator {
     try {
       if (data.getIcon(true) is CustomDirIcon) {
         return;
-      }
-      else if (data.getIcon(true) is DirIcon) {
+      } else if (data.getIcon(true) is DirIcon) {
         val openedIcon: Icon = (Objects.requireNonNull(data.getIcon(true)) as DirIcon).openedIcon
         data.setIcon(DirIcon(openedIcon))
-      }
-      else if (ProjectRootManager.getInstance(project).fileIndex.isExcluded(file)) {
+      } else if (ProjectRootManager.getInstance(project).fileIndex.isExcluded(file)) {
         data.setIcon(MTIcons.EXCLUDED)
-      }
-      else if (ProjectRootsUtil.isModuleContentRoot(file, project)) {
+      } else if (ProjectRootsUtil.isModuleContentRoot(file, project)) {
         data.setIcon(MTIcons.MODULE)
-      }
-      else if (ProjectRootsUtil.isInSource(file, project)) {
+      } else if (ProjectRootsUtil.isInSource(file, project)) {
         data.setIcon(MTIcons.SOURCE)
-      }
-      else if (ProjectRootsUtil.isInTestSource(file, project)) {
+      } else if (ProjectRootsUtil.isInTestSource(file, project)) {
         data.setIcon(MTIcons.TEST)
-      }
-      else if (data.getIcon(false) == PlatformIcons.PACKAGE_ICON) {
+      } else if (data.getIcon(false) == PlatformIcons.PACKAGE_ICON) {
         //      Looks like an open directory anyway
         data.setIcon(PlatformIcons.PACKAGE_ICON)
-      }
-      else {
+      } else {
         data.setIcon(directoryIcon)
       }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       LOG.warn(e.message)
     }
   }
@@ -96,7 +85,7 @@ class HollowFoldersDecorator : ProjectViewNodeDecorator {
   private fun isFolderContainingOpenFiles(project: Project,
                                           virtualFile: VirtualFile): Boolean {
     val openFiles = FileEditorManager.getInstance(project).openFiles
-    return openFiles.any { vf: VirtualFile -> vf.path.contains(virtualFile.getPath().toString()) }
+    return openFiles.any { vf: VirtualFile -> vf.path.contains(virtualFile.getPath()) }
   }
 
   override fun decorate(node: PackageDependenciesNode, cellRenderer: ColoredTreeCellRenderer) {}
@@ -114,10 +103,6 @@ class HollowFoldersDecorator : ProjectViewNodeDecorator {
         }
         return directory
       }
-  }
-
-  init {
-    useHollowFolders = instance.isUseHollowFolders
   }
 
 }

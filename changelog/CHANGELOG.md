@@ -1,5 +1,13 @@
 # Changelog
 
+# 26.0
+- New Option: "**Folder Color**" to customize Folder Colors from the current theme.
+- Better detection of the current theme's accent color
+- Add Checkboxes to **Accent Color** and **Folder Color** to allow customizing such colors instead of picking them from the theme
+- Improve Hollow Folders opened files detection
+- Put "Custom file associations" under the "Atom File Icon Settings"
+- New Icons: brew, harbour, holyc, hjson, hoplon, houndci, hp, hy, hyper, question 
+
 # 25.3
 - Fixes many issues with custom associations
 
